@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,3 +26,5 @@ Route::get('/profile', function () {
 Route::get('/login', [LoginController::class, 'login_view'])->name('login_view');
 
 Route::get('/register', [LoginController::class, 'register_view'])->name('register_view');
+
+Route::get('/students', [StudentController::class, 'index']);
