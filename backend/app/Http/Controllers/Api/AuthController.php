@@ -3,60 +3,77 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required:min:6'
-        ]);
+        try {
+            User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password)
+            ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password)
-        ]);
-
-        return response()->json(['statusCode' => 201, 'message' => 'Register successfully.'], 201);
+            return response()->json(['statusCode' => 201, 'message' => 'Register successfully.'], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $user = User::where('email', $request->email)->first();
+        try {
+            $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['statusCode' => 401, 'message' => 'Email or password wrong.'], 401);
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json(['statusCode' => 401, 'message' => 'Email or password wrong.'], 401);
+            }
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return response()->json(
+                [
+                    'statusCode' => 200,
+                    'message' => 'Login successfully.',
+                    'data' => $user,
+                    'token' => $token
+                ],
+                200
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        return response()->json(
-            [
-                'statusCode' => 200,
-                'message' => 'Register successfully.',
-                'data' => $user,
-                'token' => $token
-            ],
-            200
-        );
     }
 
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        try {
+            $request->user()->tokens()->delete();
 
-        return response()->json(
-            [
-                'statusCode' => 200,
-                'message' => 'User logged out.',
-            ],
-            200
-        );
+            return response()->json(
+                [
+                    'statusCode' => 200,
+                    'message' => 'User logged out.',
+                ],
+                200
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
