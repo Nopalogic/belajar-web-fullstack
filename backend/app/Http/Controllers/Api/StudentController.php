@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Ramsey\Uuid\Type\Integer;
 
 class StudentController extends Controller
 {
@@ -31,6 +32,29 @@ class StudentController extends Controller
         return response()->json([
             'statusCode' => 201,
             'message' => 'Success add student data.'
+        ]);
+    }
+
+    public function show(Request $request, Integer $id)
+    {
+        $request->validate([
+            'nim' => 'required|string|max:225|unique:students',
+            'nama' => 'required|string|max:225',
+            'jurusan' => 'required|string|max:225'
+        ]);
+
+        $student = Student::find($id);
+
+        $student->update([
+            'nim' => $request->nim,
+            'nama' => $request->nama,
+            'jurusan' => $request->jurusan
+        ]);
+
+        return response()->json([
+            'statusCode' => 200,
+            'message' => 'Success update student data.',
+            'data'=> $student
         ]);
     }
 
