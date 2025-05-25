@@ -20,7 +20,7 @@ class AuthController extends Controller
                 'password' => bcrypt($request->password)
             ]);
 
-            return response()->json(['statusCode' => 201, 'message' => 'Register successfully.'], 201);
+            return response()->json(['success' => true, 'message' => 'Register successfully.'], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -35,14 +35,14 @@ class AuthController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
-                return response()->json(['statusCode' => 401, 'message' => 'Email or password wrong.'], 401);
+                return response()->json(['success' => false, 'message' => 'Email or password wrong.'], 401);
             }
 
             $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json(
                 [
-                    'statusCode' => 200,
+                    'success' => true,
                     'message' => 'Login successfully.',
                     'data' => $user,
                     'token' => $token
@@ -64,7 +64,7 @@ class AuthController extends Controller
 
             return response()->json(
                 [
-                    'statusCode' => 200,
+                    'success' => true,
                     'message' => 'User logged out.',
                 ],
                 200
